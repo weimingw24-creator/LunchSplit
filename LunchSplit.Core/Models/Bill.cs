@@ -8,10 +8,10 @@ namespace LunchSplit.Core.Models
 {
     public record Bill
     {
-        decimal _Subtotal;
-        decimal _Tax;
-        TipMode _TipMode;
-        decimal _TipInput;
+        decimal Subtotal;
+        decimal Tax;
+        TipMode TipMode;
+        decimal TipInput;
 
         
     }
