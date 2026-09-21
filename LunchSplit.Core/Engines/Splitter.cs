@@ -11,7 +11,52 @@ namespace LunchSplit.Core.Engines
     {
         public decimal CalculateTip(decimal totalAmount, TipMode tipMode, decimal tipInput)
         {
-            throw new NotImplementedException();
+            if(totalAmount < 0)
+            {
+                throw new ArgumentException("Total amount cannot be negative.");
+                 
+            }
+            if (tipMode== TipMode.Fixed && tipInput < 0)
+            {
+                throw new ArgumentException("Tip input cannot be negative.");
+            }
+            
+            return mode switch
+            {
+                TipMode.None => 0m,
+                TipMode.Percent => Math.Round(totalAmount * (tipInput / 100), 4),
+                TipMode.Fixed => tipInput,
+                _ => 0m
+            };
+
+
         }
+
+        public List<Share> CalculateShares(Bill bill, List<Attendee> attendees, RoundingMode roundingMode)
+        {
+            var activeAttendees = attendees.Where(a => a.Included).ToList();
+            if(activeAttendees.Count == 0)
+            {
+                throw new InvalidOperationException("No active attendees to split the bill.");
+            }
+
+            int totalWeight = activeAttendees.Sum(a => a.Weight);
+
+            decimal tip = CalculateTip(bill.Subtotal + bill.Tax, bill.TipMode, bill.TipInput);
+
+            decimal grandTotal = bill.Subtotal + bill.Tax + tip;
+
+            var rawShares = new List<Share>();
+            foreach(var attendee in activeAttendees)
+            {
+                decimal shareAmount = (attendee.Weight / (decimal)totalWeight) * grandTotal;
+                rawShares.Add(new Share { Name = attendee.Name, Amount = shareAmount });
+            }
+            var rounder = new Rounder();
+            return rounder.RoundShares(rawShares, roundingMode, grandTotal);
+        }
+
+
+
     }
 }
