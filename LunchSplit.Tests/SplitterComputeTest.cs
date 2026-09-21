@@ -5,19 +5,19 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace LunchSplit.Tests
 {
     [TestClass]
-    public sealed class Test1
+    public sealed class SplitterComputeTest
     {
         [TestMethod]
         public void ComputeTip_NoTipMode_ReturnsZero()
         {
             Splitter splitter = new Splitter();
-            decimal totalAmount = 100m;
+            decimal totalAmount = 120.00m;
             TipMode tipMode = TipMode.None;
             decimal tipInput = 0m;
 
-            decimal actalResult = splitter.CalculateTip(totalAmount, tipMode, tipInput);
+            decimal actualResult = splitter.CalculateTip(totalAmount, tipMode, tipInput);
 
-            Assert.AreEqual(actalResult, 0m);
+            Assert.AreEqual(0.00m, actualResult,"TipMode None should return zero tip");
         }
 
         [TestMethod]
