@@ -21,7 +21,7 @@ namespace LunchSplit.Core.Engines
                 throw new ArgumentException("Tip input cannot be negative.");
             }
             
-            return mode switch
+            return tipMode switch
             {
                 TipMode.None => 0m,
                 TipMode.Percent => Math.Round(totalAmount * (tipInput / 100), 4),
@@ -50,7 +50,7 @@ namespace LunchSplit.Core.Engines
             foreach(var attendee in activeAttendees)
             {
                 decimal shareAmount = (attendee.Weight / (decimal)totalWeight) * grandTotal;
-                rawShares.Add(new Share { Name = attendee.Name, Amount = shareAmount });
+                rawShares.Add(new Share(attendee.Name, shareAmount));
             }
             var rounder = new Rounder();
             return rounder.RoundShares(rawShares, roundingMode, grandTotal);
