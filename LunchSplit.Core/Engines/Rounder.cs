@@ -16,6 +16,16 @@ public class Rounder
            .Select(s => new Share(s.Name, ApplyRounding(s.Amount, mode)))
            .ToList();
 
+        if (rounded.Sum(s => s.Amount) != grandTotal && grandTotal.HasValue)
+        {
+            var difference = grandTotal.Value - rounded.Sum(s => s.Amount);
+            if (difference != 0)
+            {
+                // Adjust the first share to account for the rounding difference
+                var firstShare = rounded.First();
+                rounded[0] = new Share(firstShare.Name, firstShare.Amount + difference);
+            }
+        }
         return rounded;
     }
 
