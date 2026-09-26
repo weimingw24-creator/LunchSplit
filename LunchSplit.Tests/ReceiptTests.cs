@@ -78,7 +78,7 @@ namespace LunchSplit.Tests
         [TestMethod]
         public void CalculateShares_PaymentRequest_ValidatesStripeMock()
         {
-            // Arrange —— 一份账单 + 两个参与者
+            // Arrange 
             var bill = new Bill(100m, 13m, TipMode.None, 0m);
             var attendees = new List<Attendee>
     {
@@ -86,12 +86,11 @@ namespace LunchSplit.Tests
         new("Bob", 1)
     };
 
-            // Act —— 算出分摊结果，并模拟生成支付请求
+            // Act 
             List<Share> shares = splitter.CalculateShare(bill, attendees, RoundingMode.Bankers);
-            var paymentRequest = splitter.CreatePaymentRequest(shares);  // ← 未来 F6 的方法
+            var paymentRequest = splitter.CreatePaymentRequest(shares);  
 
-            // Assert —— 占位：期待支付请求通过 Stripe 校验
-            // 此方法尚未实现，将保持 RED 直到 F6
+            // Assert 
             Assert.IsNotNull(paymentRequest, "Payment request must be generated before Stripe validation.");
         }
 
