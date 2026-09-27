@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace LunchSplit.Tests
 {
     [TestClass]
-    public sealed class SplitterComputeTest
+    public sealed class TipComputeTest
     {
         [TestMethod]
         public void ComputeTip_NoTipMode_ReturnsZero()
@@ -28,9 +28,9 @@ namespace LunchSplit.Tests
             TipMode tipMode = TipMode.Percent;
             decimal tipInput = 15m;
 
-            decimal actalResult = splitter.CalculateTip(totalAmount, tipMode, tipInput);
+            decimal actualResult = splitter.CalculateTip(totalAmount, tipMode, tipInput);
 
-            Assert.AreEqual(actalResult, 15m);
+            Assert.AreEqual(15m, actualResult);
         }
         [TestMethod]
         public void ComputeTip_FixedTipMode_ReturnsCorrectTip()
@@ -42,7 +42,7 @@ namespace LunchSplit.Tests
 
             decimal actualResult = splitter.CalculateTip(totalAmount, tipMode, tipInput);
 
-            Assert.AreEqual(actualResult, 20m);
+            Assert.AreEqual(20m, actualResult);
         }
 
         [TestMethod]
@@ -52,7 +52,7 @@ namespace LunchSplit.Tests
             Splitter splitter = new Splitter();
             decimal badSubtotal = -100m;
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => splitter.CalculateTip(badSubtotal, TipMode.Percent, 15m));
+            Assert.Throws<ArgumentException>(() => splitter.CalculateTip(badSubtotal, TipMode.Percent, 15m));
         }
 
         [TestMethod]
@@ -62,7 +62,7 @@ namespace LunchSplit.Tests
             decimal totalAmount = 100m;
             TipMode tipMode = TipMode.Fixed;
             decimal badTipInput = -20m;
-            Assert.Throws<ArgumentOutOfRangeException>(() => splitter.CalculateTip(totalAmount, tipMode, badTipInput));
+            Assert.Throws<ArgumentException>(() => splitter.CalculateTip(totalAmount, tipMode, badTipInput));
         }
 
        
