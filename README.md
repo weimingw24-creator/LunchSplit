@@ -3,6 +3,8 @@
 A restraurant bill-splitting domain logic built with Test-Driven Development.
 
  ## Project structure
+
+ '''
 LunchSplit/
 ├── LunchSplit.Core/                  # Core class library
 │   ├── Modes/
@@ -26,6 +28,7 @@ LunchSplit/
     ├── BillValidatorTests.cs
     ├── ReceiptFormatterTests.cs
     └── TddPlaceholderTests.cs
+'''
 
   ## Prerequisites
     - .NET 8 SDK
