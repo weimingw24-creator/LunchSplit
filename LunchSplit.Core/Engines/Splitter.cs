@@ -94,5 +94,12 @@ namespace LunchSplit.Core.Engines
             var rounder = new Rounder();
             return rounder.RoundShares(rawShares, roundingMode, grandTotal);
         }
+
+        public object CreatePaymentRequest(List<Share> shares)
+        {
+            // This method would create a payment request for Stripe or another payment processor.
+            // Implementation would depend on the specific API and requirements.
+            throw new NotImplementedException();
+        }
     }
 }
