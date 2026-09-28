@@ -1,0 +1,11 @@
+## Visual Studio / IDE
+.vs/
+Visual Studio 18/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Build results
+[Bb]in/
+[Oo]bj/
