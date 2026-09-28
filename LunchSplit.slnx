@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="LunchSplit.Core/LunchSplit.Core.csproj" />
+  <Project Path="LunchSplit.Tests/LunchSplit.Tests.csproj" Id="6a92013f-7216-4b3f-8d0b-5b5190d77ff4" />
+</Solution>
