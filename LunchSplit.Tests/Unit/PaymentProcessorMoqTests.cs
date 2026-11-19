@@ -112,6 +112,41 @@ namespace LunchSplit.Tests.Unit
             Assert.IsFalse(summary.HasPayments, "No payment lines should be produced.");
         }
 
+        /// <summary>
+        /// M3-06 - a four-attendee split must produce exactly four gateway
+        /// calls, one per included attendee.
+        /// </summary>
+        [TestMethod]
+        public async Task M3_06_ProcessBillAsync_FourAttendeeSplit_InvokesProcessorExactlyFourTimes()
+        {
+            // Arrange
+            var mockProcessor = new Mock<IPaymentProcessor>();
+            mockProcessor
+                .Setup(p => p.ProcessPaymentAsync(It.IsAny<PaymentRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(PaymentResult.Success("txn-m3-06"));
+
+            var manager = new PaymentManager(mockProcessor.Object);
+            var bill = new Bill(Subtotal: 80.00m, Tax: 0.00m, TipMode: TipMode.None, TipInput: 0.00m);
+            var attendees = new List<Attendee>
+            {
+                new("Alice", weight: 1, included: true),
+                new("Bob", weight: 1, included: true),
+                new("Carol", weight: 1, included: true),
+                new("Dave", weight: 1, included: true)
+            };
+
+            // Act
+            var summary = await manager.ProcessBillAsync(
+                bill, attendees, RoundingMode.Bankers, "cnon:card-nonce-ok");
+
+            // Assert
+            mockProcessor.Verify(
+                p => p.ProcessPaymentAsync(It.IsAny<PaymentRequest>(), It.IsAny<CancellationToken>()),
+                Times.Exactly(4),
+                "Each included attendee must be charged once.");
+            Assert.AreEqual(4, summary.SuccessCount);
+        }
+
 
     }
 }
