@@ -8,16 +8,23 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Moq" Version="4.21.0" />
     <PackageReference Include="MSTest" Version="4.4.1" />
     <PackageReference Include="MSTest.TestFramework" Version="4.4.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\LunchSplit.Core\LunchSplit.Core.csproj" />
+    <ProjectReference Include="..\LunchSplit.Infrastructure\LunchSplit.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="appsettings.local.json" Condition="Exists('appsettings.local.json')" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

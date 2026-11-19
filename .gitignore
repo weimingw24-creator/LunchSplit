@@ -9,3 +9,6 @@ Visual Studio 18/
 ## Build results
 [Bb]in/
 [Oo]bj/
+
+## Assignment 3 secrets - never commit raw Square keys
+LunchSplit.Tests/appsettings.local.json
