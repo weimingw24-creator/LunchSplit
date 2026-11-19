@@ -147,6 +147,42 @@ namespace LunchSplit.Tests.Unit
             Assert.AreEqual(4, summary.SuccessCount);
         }
 
+        /// <summary>
+        /// M3-07 - when attendee #2 declines, the batch must keep charging
+        /// attendees #3+ and report 2 successes plus 1 failure.
+        /// </summary>
+        [TestMethod]
+        public async Task M3_07_ProcessBillAsync_SecondAttendeeDeclines_BatchContinuesAndReportsTwoSuccessOneFailure()
+        {
+            // Arrange
+            var mockProcessor = new Mock<IPaymentProcessor>();
+            mockProcessor
+                .SetupSequence(p => p.ProcessPaymentAsync(It.IsAny<PaymentRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(PaymentResult.Success("txn-attendee-1"))
+                .ReturnsAsync(PaymentResult.Failure("CARD_DECLINED", "Card declined", 400))
+                .ReturnsAsync(PaymentResult.Success("txn-attendee-3"));
 
+            var manager = new PaymentManager(mockProcessor.Object);
+            var bill = new Bill(Subtotal: 30.00m, Tax: 0.00m, TipMode: TipMode.None, TipInput: 0.00m);
+            var attendees = new List<Attendee>
+            {
+                new("Alice", weight: 1, included: true),
+                new("Bob", weight: 1, included: true),
+                new("Carol", weight: 1, included: true)
+            };
+
+            // Act
+            var summary = await manager.ProcessBillAsync(
+                bill, attendees, RoundingMode.Bankers, "cnon:card-nonce-ok");
+
+            // Assert - a decline must not abort the rest of the table.
+            Assert.AreEqual(2, summary.SuccessCount, "Two attendees must be charged successfully.");
+            Assert.AreEqual(1, summary.FailureCount, "Exactly one attendee must be reported as failed.");
+            Assert.AreEqual(3, summary.Lines.Count, "All three attempts must be recorded.");
+            CollectionAssert.AreEqual(
+                new[] { "Bob" },
+                summary.FailedAttendees.ToArray(),
+                "The declined attendee must be identifiable for a retry.");
+        }
     }
 }
