@@ -82,6 +82,36 @@ namespace LunchSplit.Tests.Unit
                 "The processor must receive the exact dollar amount.");
         }
 
+        /// <summary>
+        /// M3-05 - a $0.00 bill has nothing to charge. The manager must
+        /// short-circuit and never touch the gateway.
+        /// </summary>
+        [TestMethod]
+        public async Task M3_05_ProcessBillAsync_ZeroDollarBill_NeverInvokesProcessor()
+        {
+            // Arrange
+            var mockProcessor = new Mock<IPaymentProcessor>();
+            var manager = new PaymentManager(mockProcessor.Object);
+
+            var zeroBill = new Bill(Subtotal: 0.00m, Tax: 0.00m, TipMode: TipMode.None, TipInput: 0.00m);
+            var attendees = new List<Attendee>
+            {
+                new("Alice", weight: 1, included: true),
+                new("Bob", weight: 1, included: true)
+            };
+
+            // Act
+            var summary = await manager.ProcessBillAsync(
+                zeroBill, attendees, RoundingMode.Bankers, "cnon:card-nonce-ok");
+
+            // Assert
+            mockProcessor.Verify(
+                p => p.ProcessPaymentAsync(It.IsAny<PaymentRequest>(), It.IsAny<CancellationToken>()),
+                Times.Never,
+                "A $0.00 bill must never call the payment gateway.");
+            Assert.IsFalse(summary.HasPayments, "No payment lines should be produced.");
+        }
+
 
     }
 }
