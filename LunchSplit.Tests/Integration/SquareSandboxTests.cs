@@ -40,6 +40,24 @@ namespace LunchSplit.Tests.Integration
                 "A successful sandbox payment must return a transaction id.");
         }
 
+        /// <summary>
+        /// M3-02 - the magic nonce cnon:card-nonce-declined must be rejected
+        /// with the CARD_DECLINED error code.
+        /// </summary>
+        [TestMethod]
+        public async Task M3_02_ProcessPaymentAsync_MagicNonceDeclined_ReturnsCardDeclined()
+        {
+            var processor = CreateProcessor();
+
+            var request = NewRequest(12.50m, "CAD", "cnon:card-nonce-declined");
+
+            var result = await processor.ProcessPaymentAsync(request);
+
+            Assert.IsFalse(result.IsSuccess, "A declined nonce must not produce a successful payment.");
+            Assert.AreEqual("CARD_DECLINED", result.ErrorCode,
+                "Square must report the decline as CARD_DECLINED.");
+        }
+
 
     }
 }
