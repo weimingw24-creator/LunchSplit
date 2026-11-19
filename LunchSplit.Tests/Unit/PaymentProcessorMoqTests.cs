@@ -21,6 +21,33 @@ namespace LunchSplit.Tests.Unit
     [TestClass]
     public class PaymentProcessorMoqTests
     {
+        /// <summary>
+        /// M3-03 - a gateway that throws HttpRequestException (socket drop,
+        /// DNS failure, firewall) must surface as the domain-level
+        /// PaymentGatewayTimeoutException so callers can retry cleanly.
+        /// </summary>
+        [TestMethod]
+        public async Task M3_03_ProcessPaymentAsync_GatewayThrowsHttpRequestException_ThrowsPaymentGatewayTimeoutException()
+        {
+            // Arrange
+            var mockProcessor = new Mock<IPaymentProcessor>();
+            mockProcessor
+                .Setup(p => p.ProcessPaymentAsync(It.IsAny<PaymentRequest>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Simulated socket drop"));
+
+            var manager = new PaymentManager(mockProcessor.Object);
+            var request = new PaymentRequest(
+                Amount: 25.00m,
+                CurrencyCode: "CAD",
+                IdempotencyKey: "m3-03-key",
+                CardNonce: "cnon:card-nonce-ok",
+                ReferenceId: "Alice");
+
+            // Act & Assert
+            await Assert.ThrowsExactlyAsync<PaymentGatewayTimeoutException>(
+                () => manager.ProcessPaymentAsync(request));
+        }
+
 
     }
 }
