@@ -76,6 +76,27 @@ namespace LunchSplit.Tests.Integration
                 "Square must reject the request with HTTP 400.");
         }
 
+        /// <summary>
+        /// M3-09 - replaying the identical request with the same idempotency
+        /// key must return the original transaction and never double charge.
+        /// </summary>
+        [TestMethod]
+        public async Task M3_09_ProcessPaymentAsync_DuplicateIdempotencyKey_ReturnsSameTransactionId()
+        {
+            var processor = CreateProcessor();
+
+            // One request object, therefore one idempotency key, replayed twice.
+            var request = NewRequest(12.50m, "CAD", "cnon:card-nonce-ok");
+
+            var first = await processor.ProcessPaymentAsync(request);
+            var second = await processor.ProcessPaymentAsync(request);
+
+            Assert.IsTrue(first.IsSuccess, "The first attempt must succeed.");
+            Assert.IsTrue(second.IsSuccess, "The replay must return the original payment.");
+            Assert.AreEqual(first.TransactionId, second.TransactionId,
+                "A duplicate idempotency key must not create a second charge.");
+        }
+
 
     }
 }
