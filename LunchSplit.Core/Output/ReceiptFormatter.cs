@@ -36,9 +36,61 @@ namespace LunchSplit.Core.Output
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Converts the formatted receipt into a two-column CSV
+        /// (Attendee,Amount) so the split can be imported into a spreadsheet.
+        /// Only the attendee share block is exported; the bill header lines
+        /// (subtotal, tax, timestamps) are intentionally skipped.
+        /// </summary>
         public string ExportToCsv(string receipt)
         {
-            throw new NotImplementedException("CSV export functionality is not implemented yet.");
+            if (string.IsNullOrWhiteSpace(receipt))
+            {
+                throw new ArgumentException("A formatted receipt is required.", nameof(receipt));
+            }
+
+            var csv = new StringBuilder();
+            csv.AppendLine("Attendee,Amount");
+
+            var insideShareBlock = false;
+            foreach (var rawLine in receipt.Split('\n'))
+            {
+                var line = rawLine.Trim();
+
+                if (line.StartsWith("--- Attendee Shares ---", StringComparison.Ordinal))
+                {
+                    insideShareBlock = true;
+                    continue;
+                }
+
+                if (!insideShareBlock || line.Length == 0)
+                {
+                    continue;
+                }
+
+                if (line.StartsWith("===", StringComparison.Ordinal))
+                {
+                    break;
+                }
+
+                var separatorIndex = line.LastIndexOf(": $", StringComparison.Ordinal);
+                if (separatorIndex < 0)
+                {
+                    continue;
+                }
+
+                var attendee = line.Substring(0, separatorIndex).Trim();
+                var amountText = line.Substring(separatorIndex + 3).Trim();
+
+                if (attendee.Length == 0 || !decimal.TryParse(amountText, out var amount))
+                {
+                    continue;
+                }
+
+                csv.AppendLine($"{attendee},{amount:F2}");
+            }
+
+            return csv.ToString();
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using LunchSplit.Core.Models;
+using LunchSplit.Core.Payments;
 
 namespace LunchSplit.Core.Engines
 {
@@ -95,11 +96,27 @@ namespace LunchSplit.Core.Engines
             return rounder.RoundShares(rawShares, roundingMode, grandTotal);
         }
 
-        public object CreatePaymentRequest(List<Share> shares)
+        /// <summary>
+        /// Builds a vendor-neutral payment instruction for the first attendee
+        /// who actually owes money. The gateway adapter turns this DTO into the
+        /// concrete SDK payload, so the engine never references Square.
+        /// </summary>
+        public PaymentRequest CreatePaymentRequest(List<Share> shares)
         {
-            // This method would create a payment request for Stripe or another payment processor.
-            // Implementation would depend on the specific API and requirements.
-            throw new NotImplementedException();
+            if (shares is null || shares.Count == 0)
+            {
+                throw new ArgumentException("At least one share is required.", nameof(shares));
+            }
+
+            var payableShare = shares.FirstOrDefault(s => s.Amount > 0m)
+                ?? throw new InvalidOperationException("No attendee owes a positive amount.");
+
+            return new PaymentRequest(
+                Amount: payableShare.Amount,
+                CurrencyCode: "CAD",
+                IdempotencyKey: $"lunchsplit-{payableShare.Name}-{Guid.NewGuid():N}",
+                CardNonce: "cnon:card-nonce-ok",
+                ReferenceId: payableShare.Name);
         }
     }
 }
