@@ -48,6 +48,40 @@ namespace LunchSplit.Tests.Unit
                 () => manager.ProcessPaymentAsync(request));
         }
 
+        /// <summary>
+        /// M3-04 - the manager must hand the exact dollar amount to the
+        /// processor. Mock.Verify() proves both the value and that the call
+        /// happened exactly once.
+        /// </summary>
+        [TestMethod]
+        public async Task M3_04_ProcessPaymentAsync_VerifiesExactAmountPassedToProcessor()
+        {
+            // Arrange
+            var mockProcessor = new Mock<IPaymentProcessor>();
+            mockProcessor
+                .Setup(p => p.ProcessPaymentAsync(It.IsAny<PaymentRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(PaymentResult.Success("txn-m3-04"));
+
+            var manager = new PaymentManager(mockProcessor.Object);
+            var request = new PaymentRequest(
+                Amount: 32.75m,
+                CurrencyCode: "CAD",
+                IdempotencyKey: "m3-04-key",
+                CardNonce: "cnon:card-nonce-ok",
+                ReferenceId: "Bob");
+
+            // Act
+            await manager.ProcessPaymentAsync(request);
+
+            // Assert - the processor received exactly $32.75, once.
+            mockProcessor.Verify(
+                p => p.ProcessPaymentAsync(
+                    It.Is<PaymentRequest>(r => r.Amount == 32.75m),
+                    It.IsAny<CancellationToken>()),
+                Times.Once,
+                "The processor must receive the exact dollar amount.");
+        }
+
 
     }
 }
