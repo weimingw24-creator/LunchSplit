@@ -58,6 +58,24 @@ namespace LunchSplit.Tests.Integration
                 "Square must report the decline as CARD_DECLINED.");
         }
 
+        /// <summary>
+        /// M3-08 - a CAD location must reject a charge submitted in EUR
+        /// with an HTTP 400 validation error.
+        /// </summary>
+        [TestMethod]
+        public async Task M3_08_ProcessPaymentAsync_UnsupportedCurrency_ReturnsHttp400ValidationError()
+        {
+            var processor = CreateProcessor();
+
+            var request = NewRequest(12.50m, "EUR", "cnon:card-nonce-ok");
+
+            var result = await processor.ProcessPaymentAsync(request);
+
+            Assert.IsFalse(result.IsSuccess, "A currency mismatch must not succeed.");
+            Assert.AreEqual(400, result.HttpStatusCode,
+                "Square must reject the request with HTTP 400.");
+        }
+
 
     }
 }
