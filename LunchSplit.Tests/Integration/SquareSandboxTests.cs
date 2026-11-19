@@ -97,6 +97,52 @@ namespace LunchSplit.Tests.Integration
                 "A duplicate idempotency key must not create a second charge.");
         }
 
+        /// <summary>
+        /// M3-10 - querying the transaction must report COMPLETED.
+        /// </summary>
+        [TestMethod]
+        public async Task M3_10_GetTransactionStatusAsync_CompletedPayment_ReturnsCompleted()
+        {
+            var processor = CreateProcessor();
 
+            var request = NewRequest(12.50m, "CAD", "cnon:card-nonce-ok");
+            var payment = await processor.ProcessPaymentAsync(request);
+            Assert.IsTrue(payment.IsSuccess, "Setup payment must succeed before querying its status.");
+
+            var status = await processor.GetTransactionStatusAsync(payment.TransactionId);
+
+            Assert.AreEqual(PaymentStatus.Completed, status,
+                "The sandbox payment was auto-completed and must report COMPLETED.");
+        }
+
+        /// <summary>
+        /// Builds the live sandbox service, or marks the test Inconclusive
+        /// when credentials are not configured.
+        /// </summary>
+        private static SquarePaymentService CreateProcessor()
+        {
+            if (!SquareSandboxSettings.IsConfigured)
+            {
+                Assert.Inconclusive(
+                    "Square Sandbox credentials are not configured. Set " +
+                    "SQUARE_SANDBOX_ACCESS_TOKEN and SQUARE_SANDBOX_LOCATION_ID " +
+                    "or fill in appsettings.local.json.");
+            }
+
+            return new SquarePaymentService(
+                accessToken: SquareSandboxSettings.AccessToken!,
+                locationId: SquareSandboxSettings.LocationId!,
+                baseUrl: SquareSandboxSettings.BaseUrl,
+                timeout: SandboxTimeout);
+        }
+
+        /// <summary>Creates a request with a fresh idempotency key.</summary>
+        private static PaymentRequest NewRequest(decimal amount, string currency, string nonce) =>
+            new(
+                Amount: amount,
+                CurrencyCode: currency,
+                IdempotencyKey: $"a3-{Guid.NewGuid():N}",
+                CardNonce: nonce,
+                ReferenceId: "A3-Sandbox");
     }
 }
