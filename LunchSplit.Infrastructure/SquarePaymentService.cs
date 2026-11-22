@@ -1,7 +1,3 @@
-using System;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using LunchSplit.Core.Payments;
 using Square;
 using Square.Payments;
@@ -63,6 +59,8 @@ public sealed class SquarePaymentService : IPaymentProcessor
         _client = new SquareClient(accessToken, options);
     }
 
+    
+
     /// <inheritdoc />
     public async Task<PaymentResult> ProcessPaymentAsync(
         PaymentRequest request,
@@ -90,8 +88,7 @@ public sealed class SquarePaymentService : IPaymentProcessor
         try
         {
             var response = await _client.Payments
-                .CreateAsync(body, new RequestOptions { Timeout = _timeout }, cancellationToken)
-                .ConfigureAwait(false);
+                .CreateAsync(body, new RequestOptions { Timeout = _timeout }, cancellationToken);
 
             var payment = response.Payment;
             if (payment?.Id is null)
